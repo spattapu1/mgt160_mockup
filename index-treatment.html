@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey - Treatment</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Instruction Page -->
+        <div id="instruction-page" class="page active">
+            <h1>Welcome to the Survey</h1>
+            <div class="instructions">
+                <h2>What You Will Do:</h2>
+                <p>You will receive $100 in an endowment to use throughout the rounds.</p>
+                <p>You will play for 12 rounds of a simple betting game.</p>
+                <p style="margin-top: 20px;"><strong>In each round:</strong></p>
+                <ul>
+                    <li>Choose how much to bet</li>
+                    <li>Decide between a risky and a safe option</li>
+                    <li>See whether you win or lose that round</li>
+                </ul>
+                <p style="margin-top: 20px;">Click "Next" when you are ready to begin.</p>
+            </div>
+            <button class="next-btn" onclick="nextPage()">Next</button>
+        </div>
+
+        <!-- Demographics Page -->
+        <div id="demographics-page" class="page">
+            <h1>Demographics</h1>
+            <div class="instructions">
+                <h2>Please answer the following questions:</h2>
+                <div class="demographics-section">
+                    <div class="question-section">
+                        <p class="question-text"><strong>What is your sex?</strong></p>
+                        <div class="radio-options">
+                            <label class="radio-option">
+                                <input type="radio" name="sex" value="Male" onchange="updateDemographics()">
+                                <span>Male</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="sex" value="Female" onchange="updateDemographics()">
+                                <span>Female</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="sex" value="Prefer not to say" onchange="updateDemographics()">
+                                <span>Prefer not to say</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="question-section" style="margin-top: 30px;">
+                        <p class="question-text"><strong>Do you have any prior experience with gambling or sports betting? For example, casino games, sportsbook apps, or poker with friends for money?</strong></p>
+                        <div class="radio-options">
+                            <label class="radio-option">
+                                <input type="radio" name="gambling" value="Yes" onchange="updateDemographics()">
+                                <span>Yes</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="gambling" value="No" onchange="updateDemographics()">
+                                <span>No</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="next-btn" id="demographics-next" onclick="nextPage()" disabled>Next</button>
+        </div>
+
+        <!-- Selection Pages (12 rounds) -->
+        <div id="selection-pages" class="pages-container">
+            <!-- Selection pages will be generated dynamically -->
+        </div>
+
+        <!-- Outcome Pages (12 rounds) -->
+        <div id="outcome-pages" class="pages-container">
+            <!-- Outcome pages will be generated dynamically -->
+        </div>
+
+        <!-- Completion Page -->
+        <div id="completion-page" class="page">
+            <h1>Survey Complete!</h1>
+            <p>Thank you for completing the survey. Your responses have been recorded.</p>
+        </div>
+    </div>
+
+    <script src="script-treatment.js"></script>
+</body>
+</html>
+
