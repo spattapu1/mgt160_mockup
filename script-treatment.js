@@ -487,6 +487,19 @@ function showOutcome(round) {
     const displayWinnings = isNaN(winnings) ? 0 : winnings;
     const displayBalanceAfter = isNaN(balanceAfter) ? 100 : balanceAfter;
     
+    // Determine reminder message based on cumulative net
+    let reminderHTML = '';
+    if (cumulativeNetLoss < 0) {
+        // Show reminder when cumulative net < 0
+        reminderHTML = `
+            <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; text-align: center;">
+                <p style="font-size: 1.1em; font-weight: 600; color: #856404; margin-bottom: 8px;">Cumulative net loss: ${cumulativeNetLoss >= 0 ? '+' : '-'} $${Math.abs(cumulativeNetLoss)}</p>
+                <p style="font-size: 1em; color: #856404; font-style: italic;">"Consider adjusting your next bet."</p>
+            </div>
+        `;
+    }
+    // Don't show reminder box if cumulative net >= 0
+    
     // Display outcome with clear calculation breakdown
     if (won) {
         outcomeText.innerHTML = `
@@ -501,10 +514,7 @@ function showOutcome(round) {
                     Balance after bet: <strong style="color: #28a745;">$${displayBalanceAfter}</strong>
                 </p>
             </div>
-            <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; text-align: center;">
-                <p style="font-size: 1.1em; font-weight: 600; color: #856404; margin-bottom: 8px;">Cumulative net loss: ${cumulativeNetLoss >= 0 ? '+' : '-'} $${Math.abs(cumulativeNetLoss)}</p>
-                <p style="font-size: 1em; color: #856404; font-style: italic;">"Consider adjusting your next bet."</p>
-            </div>
+            ${reminderHTML}
         `;
     } else {
         outcomeText.innerHTML = `
@@ -519,10 +529,7 @@ function showOutcome(round) {
                     Balance after bet: <strong style="color: #dc3545;">$${displayBalanceAfter}</strong>
                 </p>
             </div>
-            <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; text-align: center;">
-                <p style="font-size: 1.1em; font-weight: 600; color: #856404; margin-bottom: 8px;">Cumulative net loss: ${cumulativeNetLoss >= 0 ? '+' : '-'} $${Math.abs(cumulativeNetLoss)}</p>
-                <p style="font-size: 1em; color: #856404; font-style: italic;">"Consider adjusting your next bet."</p>
-            </div>
+            ${reminderHTML}
         `;
     }
     
