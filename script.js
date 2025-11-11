@@ -6,6 +6,7 @@ let roundData = []; // Store bet amount, risk choice, and outcome for each round
 let roundConfigs = []; // Store randomized configurations for each round
 let predeterminedOutcomes = []; // Store predetermined win/loss outcomes (6 wins, 6 losses)
 let demographics = {
+    age: null,
     sex: null,
     gambling: null
 };
@@ -544,10 +545,14 @@ function saveAndNext(round) {
 
 // Update demographics data and enable/disable next button
 function updateDemographics() {
+    const ageSelected = document.querySelector('input[name="age"]:checked');
     const sexSelected = document.querySelector('input[name="sex"]:checked');
     const gamblingSelected = document.querySelector('input[name="gambling"]:checked');
     const nextBtn = document.getElementById('demographics-next');
     
+    if (ageSelected) {
+        demographics.age = ageSelected.value;
+    }
     if (sexSelected) {
         demographics.sex = sexSelected.value;
     }
@@ -555,8 +560,8 @@ function updateDemographics() {
         demographics.gambling = gamblingSelected.value;
     }
     
-    // Enable next button if both questions are answered
-    if (sexSelected && gamblingSelected && nextBtn) {
+    // Enable next button if all three questions are answered
+    if (ageSelected && sexSelected && gamblingSelected && nextBtn) {
         nextBtn.disabled = false;
     } else if (nextBtn) {
         nextBtn.disabled = true;
