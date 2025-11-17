@@ -3,6 +3,7 @@ let currentPage = 0;
 const totalRounds = 12;
 let balance = 100; // Starting balance
 const startingBalance = 100; // Store starting balance for cumulative calculations
+let hasEmergencyDollar = false; // Track if player has emergency dollar
 let roundData = []; // Store bet amount, risk choice, and outcome for each round
 let roundConfigs = []; // Store randomized configurations for each round
 let predeterminedOutcomes = []; // Store predetermined win/loss outcomes (6 wins, 6 losses)
@@ -471,6 +472,23 @@ function showOutcome(round) {
             balance = 100; // Reset if somehow NaN
         }
         
+        // Handle emergency dollar logic
+        if (hasEmergencyDollar) {
+            if (won) {
+                // If they won, they now have money - remove emergency dollar status
+                hasEmergencyDollar = false;
+            } else {
+                // If they lost and only had the emergency dollar, give it back
+                if (balanceBefore === 1 && balance <= 0) {
+                    balance = 1;
+                    // Emergency dollar is still active
+                } else if (balance > 1) {
+                    // They have more than $1 now, remove emergency status
+                    hasEmergencyDollar = false;
+                }
+            }
+        }
+        
         // Store outcome data
         roundInfo.winnings = winnings;
         roundInfo.won = won;
@@ -670,8 +688,14 @@ function showPage(pageIndex) {
             const round = (adjustedIndex / 2) + 1;
             // Record round start time for betting duration tracking
             roundStartTimes[round] = Date.now();
-            updateBalanceDisplay(round);
-            document.getElementById(`selection-page-${round}`).classList.add('active');
+            
+            // Check if balance is 0 or below - give emergency dollar
+            if (balance <= 0 && !hasEmergencyDollar) {
+                showEmergencyDollarPopup(round);
+            } else {
+                updateBalanceDisplay(round);
+                document.getElementById(`selection-page-${round}`).classList.add('active');
+            }
         } else {
             // Odd adjusted index = Outcome page
             // Round number = ((adjustedIndex - 1) / 2) + 1
@@ -680,6 +704,85 @@ function showPage(pageIndex) {
             document.getElementById(`outcome-page-${round}`).classList.add('active');
         }
     }
+}
+
+// Show emergency dollar popup
+function showEmergencyDollarPopup(round) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.id = 'emergency-dollar-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        ">
+            <h2 style="color: #dc3545; margin-bottom: 20px; font-size: 1.8em;">Oh, no! You ran out of money!</h2>
+            <p style="font-size: 1.2em; margin-bottom: 20px; line-height: 1.6;">
+                You found a dollar in your pocket and can continue to make bets!
+            </p>
+            <p style="font-size: 1.1em; margin-bottom: 30px; color: #666; line-height: 1.6;">
+                You must bet your dollar and continue through the rounds!
+            </p>
+            <button onclick="acceptEmergencyDollar(${round})" style="
+                padding: 15px 40px;
+                font-size: 1.1em;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 600;
+            ">Continue</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Accept emergency dollar and continue
+function acceptEmergencyDollar(round) {
+    // Remove modal
+    const modal = document.getElementById('emergency-dollar-modal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Give emergency dollar
+    balance = 1;
+    hasEmergencyDollar = true;
+    
+    // Show selection page
+    updateBalanceDisplay(round);
+    document.getElementById(`selection-page-${round}`).classList.add('active');
+    
+    // Auto-fill bet amount with $1 and force selection
+    const betInput = document.getElementById(`bet-amount-${round}`);
+    if (betInput) {
+        betInput.value = '1';
+        betInput.readOnly = true; // Force them to bet the dollar
+        betInput.style.backgroundColor = '#f0f0f0';
+        betInput.style.cursor = 'not-allowed';
+    }
+    
+    // Trigger validation
+    validateBet(round);
 }
 
 // Update balance display on selection page
@@ -700,6 +803,19 @@ function updateBalanceDisplay(round) {
         const currentBalance = Number(balance);
         if (!isNaN(currentBalance)) {
             betInput.max = currentBalance;
+            
+            // If they have emergency dollar and balance is exactly $1, force them to bet it
+            if (hasEmergencyDollar && currentBalance === 1) {
+                betInput.value = '1';
+                betInput.readOnly = true;
+                betInput.style.backgroundColor = '#f0f0f0';
+                betInput.style.cursor = 'not-allowed';
+            } else {
+                betInput.readOnly = false;
+                betInput.style.backgroundColor = '';
+                betInput.style.cursor = '';
+            }
+            
             const currentBetValue = betInput.value.trim();
             const currentBet = parseInt(currentBetValue, 10);
             if (!isNaN(currentBet) && currentBet > currentBalance) {
