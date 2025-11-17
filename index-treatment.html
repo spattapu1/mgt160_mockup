@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Survey - Treatment</title>
+    <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,7 +23,6 @@
                     <li>See whether you win or lose that round</li>
                 </ul>
                 <p style="margin-top: 20px;">Click "Next" when you are ready to begin.</p>
-                <p style="margin-top: 20px;">* This is a mockup. Nothing will be recorded or saved.</p>
 
             </div>
             <button class="next-btn" onclick="nextPage()">Next</button>
@@ -32,23 +32,10 @@
         <div id="demographics-page" class="page">
             <h1>Demographics</h1>
             <div class="instructions">
-                <p style="margin-bottom: 20px;">Thank you for your interest in this study. Before we begin, please answer the following brief questions to ensure you are eligible to participate.</p>
+                <p style="margin-bottom: 20px;">Thank you for your interest in this study. Before we begin, please answer the following brief questions.</p>
                 <h2>Please answer the following questions:</h2>
                 <div class="demographics-section">
                     <div class="question-section">
-                        <p class="question-text"><strong>Are you older than 18 years of age? (Must be older than 18 to participate)</strong></p>
-                        <div class="radio-options">
-                            <label class="radio-option">
-                                <input type="radio" name="age" value="Yes" onchange="updateDemographics()">
-                                <span>Yes</span>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="age" value="No" onchange="updateDemographics()">
-                                <span>No</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="question-section" style="margin-top: 30px;">
                         <p class="question-text"><strong>What is your sex?</strong></p>
                         <div class="radio-options">
                             <label class="radio-option">
@@ -100,6 +87,9 @@
         </div>
     </div>
 
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="script-treatment.js"></script>
 </body>
 </html>

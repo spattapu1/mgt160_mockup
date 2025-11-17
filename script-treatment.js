@@ -6,6 +6,7 @@ const startingBalance = 100; // Store starting balance for cumulative calculatio
 let roundData = []; // Store bet amount, risk choice, and outcome for each round
 let roundConfigs = []; // Store randomized configurations for each round
 let predeterminedOutcomes = []; // Store predetermined win/loss outcomes (6 wins, 6 losses)
+let roundStartTimes = {}; // Track when each round's betting page is shown
 let demographics = {
     age: null,
     sex: null,
@@ -479,8 +480,30 @@ function showOutcome(round) {
     
     const balanceAfter = Number(balance);
     
-    // Calculate cumulative net loss
-    const cumulativeNetLoss = balanceAfter - startingBalance;
+    // Calculate cumulative gains and losses
+    let cumulativeGains = 0;
+    let cumulativeLosses = 0;
+    
+    // Sum up all winnings from previous rounds
+    for (let i = 0; i < round; i++) {
+        if (roundData[i] && roundData[i].winnings !== undefined) {
+            const winnings = Number(roundData[i].winnings);
+            if (!isNaN(winnings)) {
+                if (winnings > 0) {
+                    cumulativeGains += winnings;
+                } else {
+                    cumulativeLosses += Math.abs(winnings);
+                }
+            }
+        }
+    }
+    
+    // Include current round
+    if (winnings > 0) {
+        cumulativeGains += winnings;
+    } else {
+        cumulativeLosses += Math.abs(winnings);
+    }
     
     // Ensure all values are valid numbers
     const displayBetAmount = isNaN(betAmount) ? 0 : betAmount;
@@ -488,18 +511,14 @@ function showOutcome(round) {
     const displayWinnings = isNaN(winnings) ? 0 : winnings;
     const displayBalanceAfter = isNaN(balanceAfter) ? 100 : balanceAfter;
     
-    // Determine reminder message based on cumulative net
-    let reminderHTML = '';
-    if (cumulativeNetLoss < 0) {
-        // Show reminder when cumulative net < 0
-        reminderHTML = `
-            <div style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; text-align: center;">
-                <p style="font-size: 1.1em; font-weight: 600; color: #856404; margin-bottom: 8px;">Cumulative net loss: ${cumulativeNetLoss >= 0 ? '+' : '-'} $${Math.abs(cumulativeNetLoss)}</p>
-                <p style="font-size: 1em; color: #856404; font-style: italic;">"Consider adjusting your next bet."</p>
-            </div>
-        `;
-    }
-    // Don't show reminder box if cumulative net >= 0
+    // Show reminder with cumulative gains and losses
+    const reminderHTML = `
+        <div style="margin-top: 20px; padding: 15px; background-color: #e3f2fd; border: 2px solid #90caf9; border-radius: 8px; text-align: center;">
+            <p style="font-size: 1.1em; font-weight: 600; color: #333; margin-bottom: 10px;">Cumulative Summary:</p>
+            <p style="font-size: 1em; color: #28a745; margin-bottom: 5px;">Cumulative Gains: <strong>+$${cumulativeGains.toFixed(0)}</strong></p>
+            <p style="font-size: 1em; color: #dc3545;">Cumulative Losses: <strong>-$${cumulativeLosses.toFixed(0)}</strong></p>
+        </div>
+    `;
     
     // Display outcome with clear calculation breakdown
     if (won) {
@@ -559,19 +578,28 @@ function saveAndNext(round) {
             roundData[round - 1].betAmount = Number(betAmount);
         }
     }
+    
+    // Calculate and store betting time (time spent on betting page in seconds)
+    if (roundStartTimes[round]) {
+        const bettingTimeMs = Date.now() - roundStartTimes[round];
+        const bettingTimeSeconds = Math.round(bettingTimeMs / 1000 * 100) / 100; // Round to 2 decimal places
+        if (!roundData[round - 1]) {
+            roundData[round - 1] = {};
+        }
+        roundData[round - 1].bettingTime = bettingTimeSeconds;
+        // Clean up the start time
+        delete roundStartTimes[round];
+    }
+    
     nextPage();
 }
 
 // Update demographics data and enable/disable next button
 function updateDemographics() {
-    const ageSelected = document.querySelector('input[name="age"]:checked');
     const sexSelected = document.querySelector('input[name="sex"]:checked');
     const gamblingSelected = document.querySelector('input[name="gambling"]:checked');
     const nextBtn = document.getElementById('demographics-next');
     
-    if (ageSelected) {
-        demographics.age = ageSelected.value;
-    }
     if (sexSelected) {
         demographics.sex = sexSelected.value;
     }
@@ -579,8 +607,8 @@ function updateDemographics() {
         demographics.gambling = gamblingSelected.value;
     }
     
-    // Enable next button if all three questions are answered
-    if (ageSelected && sexSelected && gamblingSelected && nextBtn) {
+    // Enable next button if both questions are answered
+    if (sexSelected && gamblingSelected && nextBtn) {
         nextBtn.disabled = false;
     } else if (nextBtn) {
         nextBtn.disabled = true;
@@ -617,6 +645,8 @@ function showPage(pageIndex) {
     } else if (pageIndex === 'completion') {
         // Completion page
         document.getElementById('completion-page').classList.add('active');
+        // Save data to Supabase when survey completes
+        saveSurveyDataToSupabase('treatment');
     } else {
         // Page flow: 
         // Page 0: instruction
@@ -638,6 +668,8 @@ function showPage(pageIndex) {
             // Even adjusted index = Selection page
             // Round number = (adjustedIndex / 2) + 1
             const round = (adjustedIndex / 2) + 1;
+            // Record round start time for betting duration tracking
+            roundStartTimes[round] = Date.now();
             updateBalanceDisplay(round);
             document.getElementById(`selection-page-${round}`).classList.add('active');
         } else {
@@ -676,5 +708,27 @@ function updateBalanceDisplay(round) {
             }
         }
     }
+}
+
+// Save survey data to Supabase
+async function saveSurveyDataToSupabase(group) {
+    // Wait for Supabase to initialize
+    if (typeof initSupabase === 'function') {
+        initSupabase();
+    }
+    
+    // Wait a bit for initialization
+    setTimeout(async () => {
+        if (typeof saveSurveyData === 'function') {
+            const success = await saveSurveyData(group, demographics, roundData, balance);
+            if (success) {
+                console.log('Survey data saved successfully');
+            } else {
+                console.log('Failed to save survey data');
+            }
+        } else {
+            console.warn('saveSurveyData function not found - Supabase may not be configured');
+        }
+    }, 500);
 }
 

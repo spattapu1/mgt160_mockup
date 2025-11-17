@@ -1,0 +1,12 @@
+{
+  "name": "mgt160-mockup",
+  "version": "1.0.0",
+  "description": "Sports Betting Simulation Survey",
+  "scripts": {
+    "start": "npx serve -s . -l 10000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
+

@@ -5,6 +5,7 @@ let balance = 100; // Starting balance
 let roundData = []; // Store bet amount, risk choice, and outcome for each round
 let roundConfigs = []; // Store randomized configurations for each round
 let predeterminedOutcomes = []; // Store predetermined win/loss outcomes (6 wins, 6 losses)
+let roundStartTimes = {}; // Track when each round's betting page is shown
 let demographics = {
     age: null,
     sex: null,
@@ -540,19 +541,28 @@ function saveAndNext(round) {
             roundData[round - 1].betAmount = Number(betAmount);
         }
     }
+    
+    // Calculate and store betting time (time spent on betting page in seconds)
+    if (roundStartTimes[round]) {
+        const bettingTimeMs = Date.now() - roundStartTimes[round];
+        const bettingTimeSeconds = Math.round(bettingTimeMs / 1000 * 100) / 100; // Round to 2 decimal places
+        if (!roundData[round - 1]) {
+            roundData[round - 1] = {};
+        }
+        roundData[round - 1].bettingTime = bettingTimeSeconds;
+        // Clean up the start time
+        delete roundStartTimes[round];
+    }
+    
     nextPage();
 }
 
 // Update demographics data and enable/disable next button
 function updateDemographics() {
-    const ageSelected = document.querySelector('input[name="age"]:checked');
     const sexSelected = document.querySelector('input[name="sex"]:checked');
     const gamblingSelected = document.querySelector('input[name="gambling"]:checked');
     const nextBtn = document.getElementById('demographics-next');
     
-    if (ageSelected) {
-        demographics.age = ageSelected.value;
-    }
     if (sexSelected) {
         demographics.sex = sexSelected.value;
     }
@@ -560,8 +570,8 @@ function updateDemographics() {
         demographics.gambling = gamblingSelected.value;
     }
     
-    // Enable next button if all three questions are answered
-    if (ageSelected && sexSelected && gamblingSelected && nextBtn) {
+    // Enable next button if both questions are answered
+    if (sexSelected && gamblingSelected && nextBtn) {
         nextBtn.disabled = false;
     } else if (nextBtn) {
         nextBtn.disabled = true;
@@ -598,6 +608,8 @@ function showPage(pageIndex) {
     } else if (pageIndex === 'completion') {
         // Completion page
         document.getElementById('completion-page').classList.add('active');
+        // Save data to Supabase when survey completes
+        saveSurveyDataToSupabase('control');
     } else {
         // Page flow: 
         // Page 0: instruction
@@ -619,6 +631,8 @@ function showPage(pageIndex) {
             // Even adjusted index = Selection page
             // Round number = (adjustedIndex / 2) + 1
             const round = (adjustedIndex / 2) + 1;
+            // Record round start time for betting duration tracking
+            roundStartTimes[round] = Date.now();
             updateBalanceDisplay(round);
             document.getElementById(`selection-page-${round}`).classList.add('active');
         } else {
@@ -657,5 +671,27 @@ function updateBalanceDisplay(round) {
             }
         }
     }
+}
+
+// Save survey data to Supabase
+async function saveSurveyDataToSupabase(group) {
+    // Wait for Supabase to initialize
+    if (typeof initSupabase === 'function') {
+        initSupabase();
+    }
+    
+    // Wait a bit for initialization
+    setTimeout(async () => {
+        if (typeof saveSurveyData === 'function') {
+            const success = await saveSurveyData(group, demographics, roundData, balance);
+            if (success) {
+                console.log('Survey data saved successfully');
+            } else {
+                console.log('Failed to save survey data');
+            }
+        } else {
+            console.warn('saveSurveyData function not found - Supabase may not be configured');
+        }
+    }, 500);
 }
 

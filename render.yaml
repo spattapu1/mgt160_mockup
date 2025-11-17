@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mgt160-mockup
+    env: static
+    buildCommand: npm install
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+
