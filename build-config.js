@@ -8,12 +8,20 @@ const path = require('path');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
 
+// Validate environment variables
+if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+    console.error('ERROR: SUPABASE_URL and SUPABASE_ANON_KEY environment variables must be set!');
+    console.error('Please configure these in your Render dashboard under Environment Variables.');
+    process.exit(1);
+}
+
 const configContent = `// Supabase configuration
 // This file is auto-generated during build
 // Do not edit manually - use environment variables in Render
 
-const SUPABASE_URL = '${SUPABASE_URL}';
-const SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
+// Make variables globally accessible for admin dashboard
+var SUPABASE_URL = '${SUPABASE_URL}';
+var SUPABASE_ANON_KEY = '${SUPABASE_ANON_KEY}';
 
 // Initialize Supabase client
 let supabaseClient = null;
@@ -71,7 +79,22 @@ async function saveSurveyData(group, demographics, roundData, finalBalance) {
 `;
 
 const outputPath = path.join(__dirname, 'supabase-config.js');
-fs.writeFileSync(outputPath, configContent, 'utf8');
-console.log('✓ Generated supabase-config.js from environment variables');
+try {
+    fs.writeFileSync(outputPath, configContent, 'utf8');
+    console.log('✓ Generated supabase-config.js from environment variables');
+    console.log('✓ File written to:', outputPath);
+    
+    // Verify file was created
+    if (fs.existsSync(outputPath)) {
+        const stats = fs.statSync(outputPath);
+        console.log('✓ File verified - size:', stats.size, 'bytes');
+    } else {
+        console.error('ERROR: File was not created!');
+        process.exit(1);
+    }
+} catch (err) {
+    console.error('ERROR: Failed to write supabase-config.js:', err.message);
+    process.exit(1);
+}
 
 

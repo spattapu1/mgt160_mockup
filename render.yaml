@@ -2,7 +2,7 @@ services:
   - type: web
     name: mgt160-mockup
     env: static
-    buildCommand: npm install
+    buildCommand: npm install && node build-config.js
     staticPublishPath: .
     routes:
       - type: rewrite

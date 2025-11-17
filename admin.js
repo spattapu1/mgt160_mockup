@@ -63,11 +63,15 @@ function initSupabaseAdmin() {
     if (typeof SUPABASE_URL === 'undefined' || SUPABASE_URL === 'YOUR_SUPABASE_URL' ||
         typeof SUPABASE_ANON_KEY === 'undefined' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
         console.error('Supabase credentials not configured');
+        console.error('SUPABASE_URL:', typeof SUPABASE_URL, SUPABASE_URL);
+        console.error('SUPABASE_ANON_KEY:', typeof SUPABASE_ANON_KEY, SUPABASE_ANON_KEY ? 'defined' : 'undefined');
         showError('Supabase not configured. Please set up your credentials.');
         return false;
     }
     
+    console.log('Initializing Supabase admin with URL:', SUPABASE_URL);
     supabaseAdmin = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('Supabase admin client created successfully');
     return true;
 }
 
@@ -117,31 +121,45 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMsg.textContent = '';
             
             try {
+                if (!supabaseAdmin) {
+                    console.error('supabaseAdmin not initialized');
+                    if (!initSupabaseAdmin()) {
+                        showError('Failed to initialize Supabase. Please refresh the page.');
+                        return;
+                    }
+                }
+                
                 console.log('Attempting login for:', email);
+                console.log('Supabase client:', supabaseAdmin ? 'initialized' : 'not initialized');
+                
                 const { data, error } = await supabaseAdmin.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
                 
-                console.log('Login response:', { data, error });
+                console.log('Login response:', { 
+                    hasData: !!data, 
+                    hasSession: !!(data && data.session),
+                    error: error ? error.message : null 
+                });
                 
                 if (error) {
                     console.error('Login error:', error);
-                    showError(error.message);
+                    showError(error.message || 'Invalid email or password');
                     return;
                 }
                 
-                if (data.session) {
+                if (data && data.session) {
                     console.log('Login successful, showing dashboard');
                     showDashboard();
                     loadData();
                 } else {
                     console.error('Login succeeded but no session');
-                    showError('Login failed - no session created');
+                    showError('Login failed - no session created. Please try again.');
                 }
             } catch (err) {
-                showError('An error occurred during login. Please try again.');
-                console.error('Login error:', err);
+                console.error('Login exception:', err);
+                showError('An error occurred during login: ' + (err.message || 'Please try again.'));
             }
         });
     }
