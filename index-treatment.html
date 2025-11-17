@@ -65,6 +65,19 @@
                             </label>
                         </div>
                     </div>
+                    <div class="question-section" style="margin-top: 30px;">
+                        <p class="question-text"><strong>What is your UCSD email address?</strong></p>
+                        <input type="email" id="ucsd-email" name="ucsd-email" placeholder="yourname@ucsd.edu" style="
+                            width: 100%;
+                            max-width: 400px;
+                            padding: 10px;
+                            font-size: 1em;
+                            border: 2px solid #ddd;
+                            border-radius: 5px;
+                            margin-top: 10px;
+                        " oninput="updateDemographics()">
+                        <p id="email-error" style="color: #dc3545; font-size: 0.9em; margin-top: 5px; display: none;">Please enter a valid UCSD email address (@ucsd.edu)</p>
+                    </div>
                 </div>
             </div>
             <button class="next-btn" id="demographics-next" onclick="nextPage()" disabled>Next</button>

@@ -11,7 +11,8 @@ let roundStartTimes = {}; // Track when each round's betting page is shown
 let demographics = {
     age: null,
     sex: null,
-    gambling: null
+    gambling: null,
+    email: null
 };
 
 // Initialize the survey
@@ -616,6 +617,8 @@ function saveAndNext(round) {
 function updateDemographics() {
     const sexSelected = document.querySelector('input[name="sex"]:checked');
     const gamblingSelected = document.querySelector('input[name="gambling"]:checked');
+    const emailInput = document.getElementById('ucsd-email');
+    const emailError = document.getElementById('email-error');
     const nextBtn = document.getElementById('demographics-next');
     
     if (sexSelected) {
@@ -625,8 +628,36 @@ function updateDemographics() {
         demographics.gambling = gamblingSelected.value;
     }
     
-    // Enable next button if both questions are answered
-    if (sexSelected && gamblingSelected && nextBtn) {
+    // Validate UCSD email
+    let emailValid = false;
+    if (emailInput) {
+        const email = emailInput.value.trim();
+        // Check if email ends with @ucsd.edu
+        if (email && email.toLowerCase().endsWith('@ucsd.edu')) {
+            demographics.email = email;
+            emailValid = true;
+            if (emailError) {
+                emailError.style.display = 'none';
+            }
+        } else if (email) {
+            // Email entered but invalid format
+            demographics.email = null;
+            emailValid = false;
+            if (emailError) {
+                emailError.style.display = 'block';
+            }
+        } else {
+            // No email entered yet
+            demographics.email = null;
+            emailValid = false;
+            if (emailError) {
+                emailError.style.display = 'none';
+            }
+        }
+    }
+    
+    // Enable next button if all three questions are answered
+    if (sexSelected && gamblingSelected && emailValid && nextBtn) {
         nextBtn.disabled = false;
     } else if (nextBtn) {
         nextBtn.disabled = true;
