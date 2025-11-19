@@ -102,6 +102,26 @@
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
+    <script>
+        // Check group assignment on page load
+        (function() {
+            const assignedGroup = localStorage.getItem('surveyGroup');
+            
+            // If no assignment exists, redirect to randomization page
+            if (!assignedGroup) {
+                window.location.replace('randomization.html');
+                return;
+            }
+            
+            // If assigned to treatment group, redirect to treatment page
+            if (assignedGroup === 'treatment') {
+                window.location.replace('index-treatment.html');
+                return;
+            }
+            
+            // User is correctly assigned to control group, continue loading
+        })();
+    </script>
     <script src="script.js"></script>
 </body>
 </html>

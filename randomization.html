@@ -59,11 +59,38 @@
     </div>
 
     <script>
+        // Check if user already has an assignment
+        document.addEventListener('DOMContentLoaded', function() {
+            const assignedGroup = localStorage.getItem('surveyGroup');
+            if (assignedGroup) {
+                // User already has an assignment, redirect them to their assigned group
+                if (assignedGroup === 'treatment') {
+                    window.location.replace('index-treatment.html');
+                } else {
+                    window.location.replace('index.html');
+                }
+            }
+        });
+
         function startSurvey() {
+            // Check if user already has an assignment (shouldn't happen, but double-check)
+            const existingGroup = localStorage.getItem('surveyGroup');
+            if (existingGroup) {
+                // Already assigned, redirect to their group
+                if (existingGroup === 'treatment') {
+                    window.location.replace('index-treatment.html');
+                } else {
+                    window.location.replace('index.html');
+                }
+                return;
+            }
+
             // Randomly choose between control and treatment (50/50 chance)
             const isTreatment = Math.random() < 0.5;
             
-            // Store the choice in sessionStorage for tracking
+            // Store the choice in localStorage (persists across sessions)
+            // Also store in sessionStorage for backward compatibility
+            localStorage.setItem('surveyGroup', isTreatment ? 'treatment' : 'control');
             sessionStorage.setItem('surveyGroup', isTreatment ? 'treatment' : 'control');
             
             // Redirect to the appropriate page
