@@ -92,6 +92,7 @@ async function checkAuth() {
         console.log('User has session, showing dashboard');
         showDashboard();
         loadData();
+        setupCSVAutoRefresh();
     } else {
         console.log('No session, showing login');
         showLogin();
@@ -153,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('Login successful, showing dashboard');
                     showDashboard();
                     loadData();
+                    setupCSVAutoRefresh();
                 } else {
                     console.error('Login succeeded but no session');
                     showError('Login failed - no session created. Please try again.');
@@ -188,6 +190,12 @@ function showDashboard() {
 
 // Logout
 async function logout() {
+    // Clear auto-refresh interval
+    if (csvRefreshInterval) {
+        clearInterval(csvRefreshInterval);
+        csvRefreshInterval = null;
+    }
+    
     if (supabaseAdmin) {
         await supabaseAdmin.auth.signOut();
     }
@@ -269,10 +277,305 @@ async function loadData() {
         loading.classList.add('hidden');
         tableContainer.classList.remove('hidden');
         
+        // Also load CSV data
+        loadCSVData(data);
+        
     } catch (err) {
         console.error('Exception loading data:', err);
         loading.textContent = 'Error loading data. Please check console.';
     }
+}
+
+// Load CSV-style detailed data
+let csvDataCache = null;
+let csvRefreshInterval = null;
+
+async function loadCSVData(data = null) {
+    const csvLoading = document.getElementById('csv-loading');
+    const csvTableContainer = document.getElementById('csv-table-container');
+    const csvTableHead = document.getElementById('csv-table-head');
+    const csvTableBody = document.getElementById('csv-table-body');
+    
+    if (!supabaseAdmin) {
+        console.error('supabaseAdmin not initialized');
+        return;
+    }
+    
+    // Check if user is logged in
+    const { data: { session } } = await supabaseAdmin.auth.getSession();
+    if (!session) {
+        console.error('No session - user not logged in');
+        return;
+    }
+    
+    csvLoading.classList.remove('hidden');
+    csvTableContainer.classList.add('hidden');
+    
+    try {
+        // Use provided data or fetch from database
+        let responseData = data;
+        if (!responseData) {
+            const { data: fetchedData, error } = await supabaseAdmin
+                .from('survey_responses')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error('Error loading CSV data:', error);
+                csvLoading.textContent = 'Error loading CSV data: ' + error.message;
+                return;
+            }
+            responseData = fetchedData;
+        }
+        
+        csvDataCache = responseData;
+        
+        // Generate CSV table
+        generateCSVTable(responseData);
+        
+        csvLoading.classList.add('hidden');
+        csvTableContainer.classList.remove('hidden');
+        
+    } catch (err) {
+        console.error('Exception loading CSV data:', err);
+        csvLoading.textContent = 'Error loading CSV data. Please check console.';
+    }
+}
+
+// Generate CSV-style table with all columns
+function generateCSVTable(data) {
+    const csvTableHead = document.getElementById('csv-table-head');
+    const csvTableBody = document.getElementById('csv-table-body');
+    
+    if (!data || data.length === 0) {
+        csvTableHead.innerHTML = '';
+        csvTableBody.innerHTML = '<tr><td colspan="100" style="text-align: center; padding: 40px;">No data available yet</td></tr>';
+        return;
+    }
+    
+    // Generate column headers
+    const baseColumns = ['id', 'email', 'gender', 'prev_exp', 'group', 'final_balance', 'created_at'];
+    const roundColumns = [];
+    
+    // Generate round columns (1-12)
+    for (let round = 1; round <= 12; round++) {
+        roundColumns.push(
+            `round${round}_result`,
+            `round${round}_risk`,
+            `round${round}_betsize`,
+            `round${round}_winnings`,
+            `round${round}_balance_before`,
+            `round${round}_time`
+        );
+    }
+    
+    const allColumns = [...baseColumns, ...roundColumns];
+    
+    // Create header row
+    const headerRow = document.createElement('tr');
+    allColumns.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        headerRow.appendChild(th);
+    });
+    csvTableHead.innerHTML = '';
+    csvTableHead.appendChild(headerRow);
+    
+    // Create data rows
+    csvTableBody.innerHTML = '';
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        
+        // Base columns
+        const demographics = row.demographics || {};
+        const roundData = row.round_data || [];
+        
+        // ID
+        const tdId = document.createElement('td');
+        tdId.textContent = row.id || '';
+        tr.appendChild(tdId);
+        
+        // Email
+        const tdEmail = document.createElement('td');
+        tdEmail.textContent = demographics.email || '';
+        tr.appendChild(tdEmail);
+        
+        // Gender
+        const tdGender = document.createElement('td');
+        tdGender.textContent = demographics.sex || '';
+        tr.appendChild(tdGender);
+        
+        // Prev Exp
+        const tdPrevExp = document.createElement('td');
+        tdPrevExp.textContent = demographics.gambling || '';
+        tr.appendChild(tdPrevExp);
+        
+        // Group
+        const tdGroup = document.createElement('td');
+        tdGroup.textContent = row.group || '';
+        tr.appendChild(tdGroup);
+        
+        // Final Balance
+        const tdFinalBalance = document.createElement('td');
+        tdFinalBalance.textContent = row.final_balance || '';
+        tr.appendChild(tdFinalBalance);
+        
+        // Created At
+        const tdCreatedAt = document.createElement('td');
+        tdCreatedAt.textContent = row.created_at ? new Date(row.created_at).toLocaleString() : '';
+        tr.appendChild(tdCreatedAt);
+        
+        // Round columns (1-12)
+        for (let round = 1; round <= 12; round++) {
+            const roundIndex = round - 1;
+            const roundInfo = roundData[roundIndex] || {};
+            
+            // Result (won/lost based on winnings)
+            const tdResult = document.createElement('td');
+            if (roundInfo.winnings !== undefined && roundInfo.winnings !== null) {
+                const winnings = parseFloat(roundInfo.winnings) || 0;
+                tdResult.textContent = winnings > 0 ? 'win' : (winnings < 0 ? 'loss' : 'breakeven');
+            } else {
+                tdResult.textContent = '';
+            }
+            tr.appendChild(tdResult);
+            
+            // Risk
+            const tdRisk = document.createElement('td');
+            tdRisk.textContent = roundInfo.risk || '';
+            tr.appendChild(tdRisk);
+            
+            // Bet Size
+            const tdBetSize = document.createElement('td');
+            tdBetSize.textContent = roundInfo.betAmount !== undefined && roundInfo.betAmount !== null ? roundInfo.betAmount : '';
+            tr.appendChild(tdBetSize);
+            
+            // Winnings
+            const tdWinnings = document.createElement('td');
+            tdWinnings.textContent = roundInfo.winnings !== undefined && roundInfo.winnings !== null ? roundInfo.winnings : '';
+            tr.appendChild(tdWinnings);
+            
+            // Balance Before
+            const tdBalanceBefore = document.createElement('td');
+            tdBalanceBefore.textContent = roundInfo.balanceBefore !== undefined && roundInfo.balanceBefore !== null ? roundInfo.balanceBefore : '';
+            tr.appendChild(tdBalanceBefore);
+            
+            // Time
+            const tdTime = document.createElement('td');
+            tdTime.textContent = roundInfo.bettingTime !== undefined && roundInfo.bettingTime !== null ? roundInfo.bettingTime : '';
+            tr.appendChild(tdTime);
+        }
+        
+        csvTableBody.appendChild(tr);
+    });
+}
+
+// Download CSV file
+function downloadCSV() {
+    if (!csvDataCache || csvDataCache.length === 0) {
+        alert('No data available to download. Please refresh first.');
+        return;
+    }
+    
+    // Generate column headers
+    const baseColumns = ['id', 'email', 'gender', 'prev_exp', 'group', 'final_balance', 'created_at'];
+    const roundColumns = [];
+    
+    for (let round = 1; round <= 12; round++) {
+        roundColumns.push(
+            `round${round}_result`,
+            `round${round}_risk`,
+            `round${round}_betsize`,
+            `round${round}_winnings`,
+            `round${round}_balance_before`,
+            `round${round}_time`
+        );
+    }
+    
+    const allColumns = [...baseColumns, ...roundColumns];
+    
+    // Create CSV content
+    let csvContent = allColumns.join(',') + '\n';
+    
+    csvDataCache.forEach(row => {
+        const demographics = row.demographics || {};
+        const roundData = row.round_data || [];
+        const rowData = [];
+        
+        // Base columns
+        rowData.push(row.id || '');
+        rowData.push(escapeCSV(demographics.email || ''));
+        rowData.push(escapeCSV(demographics.sex || ''));
+        rowData.push(escapeCSV(demographics.gambling || ''));
+        rowData.push(escapeCSV(row.group || ''));
+        rowData.push(row.final_balance || '');
+        rowData.push(row.created_at ? new Date(row.created_at).toISOString() : '');
+        
+        // Round columns (1-12)
+        for (let round = 1; round <= 12; round++) {
+            const roundIndex = round - 1;
+            const roundInfo = roundData[roundIndex] || {};
+            
+            // Result
+            if (roundInfo.winnings !== undefined && roundInfo.winnings !== null) {
+                const winnings = parseFloat(roundInfo.winnings) || 0;
+                rowData.push(winnings > 0 ? 'win' : (winnings < 0 ? 'loss' : 'breakeven'));
+            } else {
+                rowData.push('');
+            }
+            
+            // Risk
+            rowData.push(escapeCSV(roundInfo.risk || ''));
+            
+            // Bet Size
+            rowData.push(roundInfo.betAmount !== undefined && roundInfo.betAmount !== null ? roundInfo.betAmount : '');
+            
+            // Winnings
+            rowData.push(roundInfo.winnings !== undefined && roundInfo.winnings !== null ? roundInfo.winnings : '');
+            
+            // Balance Before
+            rowData.push(roundInfo.balanceBefore !== undefined && roundInfo.balanceBefore !== null ? roundInfo.balanceBefore : '');
+            
+            // Time
+            rowData.push(roundInfo.bettingTime !== undefined && roundInfo.bettingTime !== null ? roundInfo.bettingTime : '');
+        }
+        
+        csvContent += rowData.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `survey_data_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Escape CSV values (handle commas, quotes, newlines)
+function escapeCSV(value) {
+    if (value === null || value === undefined) return '';
+    const stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return '"' + stringValue.replace(/"/g, '""') + '"';
+    }
+    return stringValue;
+}
+
+// Set up auto-refresh for CSV table
+function setupCSVAutoRefresh() {
+    // Clear existing interval if any
+    if (csvRefreshInterval) {
+        clearInterval(csvRefreshInterval);
+    }
+    
+    // Refresh every 30 seconds
+    csvRefreshInterval = setInterval(() => {
+        loadCSVData();
+    }, 30000);
 }
 
 // Update statistics

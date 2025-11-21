@@ -388,6 +388,29 @@
         .hidden {
             display: none;
         }
+        
+        #csv-table {
+            min-width: 100%;
+        }
+        
+        #csv-table th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            z-index: 10;
+            font-size: 11px;
+            padding: 8px 10px;
+        }
+        
+        #csv-table td {
+            padding: 6px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+        
+        #csv-table-container {
+            border: 1px solid #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -466,7 +489,27 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+        
+        <!-- CSV-Style Detailed Table -->
+        <div class="data-table" style="margin-top: 30px;">
+            <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Detailed CSV View</h2>
+                <div>
+                    <button id="refresh-csv-btn" class="next-btn" style="margin-right: 10px; padding: 8px 16px; font-size: 14px;" onclick="loadCSVData()">Refresh</button>
+                    <button id="download-csv-btn" class="next-btn" style="padding: 8px 16px; font-size: 14px;" onclick="downloadCSV()">Download CSV</button>
                 </div>
+            </div>
+            <div id="csv-loading" class="loading">Loading CSV data...</div>
+            <div id="csv-table-container" class="hidden" style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                <table id="csv-table" style="font-size: 12px;">
+                    <thead id="csv-table-head">
+                    </thead>
+                    <tbody id="csv-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
         
         <!-- Visualizations Section -->
         <div id="visualizations-section" style="margin-top: 50px;">
