@@ -503,15 +503,15 @@ function showOutcome(round) {
     let cumulativeGains = 0;
     let cumulativeLosses = 0;
     
-    // Sum up all winnings from previous rounds
-    for (let i = 0; i < round; i++) {
+    // Sum up all winnings from previous rounds (exclude current round to avoid double counting)
+    for (let i = 0; i < round - 1; i++) {
         if (roundData[i] && roundData[i].winnings !== undefined) {
-            const winnings = Number(roundData[i].winnings);
-            if (!isNaN(winnings)) {
-                if (winnings > 0) {
-                    cumulativeGains += winnings;
+            const roundWinnings = Number(roundData[i].winnings);
+            if (!isNaN(roundWinnings)) {
+                if (roundWinnings > 0) {
+                    cumulativeGains += roundWinnings;
                 } else {
-                    cumulativeLosses += Math.abs(winnings);
+                    cumulativeLosses += Math.abs(roundWinnings);
                 }
             }
         }
@@ -520,7 +520,7 @@ function showOutcome(round) {
     // Include current round
     if (winnings > 0) {
         cumulativeGains += winnings;
-    } else {
+    } else if (winnings < 0) {
         cumulativeLosses += Math.abs(winnings);
     }
     
