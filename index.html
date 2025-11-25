@@ -3,127 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey</title>
+    <title>Survey - Starting</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .randomization-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .randomization-container h1 {
+            margin-bottom: 30px;
+            color: #ffffff;
+        }
+        
+        .randomization-container p {
+            font-size: 1.1em;
+            color: #ffffff;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+        
+        .start-btn {
+            padding: 15px 50px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 1px solid #ffffff;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.4);
+        }
+        
+        .start-btn:active {
+            transform: translateY(0);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Instruction Page -->
-        <div id="instruction-page" class="page active">
-            <h1>Sports Betting Simulation</h1>
-            <div class="instructions">
-                <h2>What You Will Do:</h2>
-                <p>You will receive $100 in an endowment to use throughout the rounds.</p>
-                <p>You will play for 12 rounds of a simple betting game.</p>
-                <p style="margin-top: 20px;"><strong>In each round:</strong></p>
-                <ul>
-                    <li>Choose how much to bet</li>
-                    <li>Decide between a risky and a safe option</li>
-                    <li>See whether you win or lose that round</li>
-                    <li style="margin-top: 10px;"><strong>Out of the top 10 earners one randomly selected participant, will win $50 real dollars.</strong></li>
-                </ul>
-                <p style="margin-top: 20px;">Click "Next" when you are ready to begin.</p>
-            </div>
-            <button class="next-btn" onclick="nextPage()">Next</button>
-        </div>
-
-        <!-- Demographics Page -->
-        <div id="demographics-page" class="page">
-            <h1>Demographics</h1>
-            <div class="instructions">
-                <p style="margin-bottom: 20px;">Thank you for your interest in this study. Before we begin, please answer the following brief questions.</p>
-                <h2>Please answer the following questions:</h2>
-                <div class="demographics-section">
-                    <div class="question-section">
-                        <p class="question-text"><strong>What is your sex?</strong></p>
-                        <div class="radio-options">
-                            <label class="radio-option">
-                                <input type="radio" name="sex" value="Male" onchange="updateDemographics()">
-                                <span>Male</span>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="sex" value="Female" onchange="updateDemographics()">
-                                <span>Female</span>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="sex" value="Prefer not to say" onchange="updateDemographics()">
-                                <span>Prefer not to say</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="question-section" style="margin-top: 30px;">
-                        <p class="question-text"><strong>Do you have any prior experience with gambling or sports betting? For example, casino games, sportsbook apps, or poker with friends for money?</strong></p>
-                        <div class="radio-options">
-                            <label class="radio-option">
-                                <input type="radio" name="gambling" value="Yes" onchange="updateDemographics()">
-                                <span>Yes</span>
-                            </label>
-                            <label class="radio-option">
-                                <input type="radio" name="gambling" value="No" onchange="updateDemographics()">
-                                <span>No</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div class="question-section" style="margin-top: 30px;">
-                        <p class="question-text"><strong>What is your UCSD email address?</strong></p>
-                        <input type="email" id="ucsd-email" name="ucsd-email" placeholder="yourname@ucsd.edu" style="
-                            width: 100%;
-                            max-width: 400px;
-                            padding: 10px;
-                            font-size: 1em;
-                            border: 2px solid #ddd;
-                            border-radius: 5px;
-                            margin-top: 10px;
-                        " oninput="updateDemographics()">
-                        <p id="email-error" style="color: #dc3545; font-size: 0.9em; margin-top: 5px; display: none;">Please enter a valid UCSD email address (@ucsd.edu)</p>
-                    </div>
-                </div>
-            </div>
-            <button class="next-btn" id="demographics-next" onclick="nextPage()" disabled>Next</button>
-        </div>
-
-        <!-- Selection Pages (12 rounds) -->
-        <div id="selection-pages" class="pages-container">
-            <!-- Selection pages will be generated dynamically -->
-        </div>
-
-        <!-- Outcome Pages (12 rounds) -->
-        <div id="outcome-pages" class="pages-container">
-            <!-- Outcome pages will be generated dynamically -->
-        </div>
-
-        <!-- Completion Page -->
-        <div id="completion-page" class="page">
-            <h1>Survey Complete!</h1>
-            <p>Thank you for completing the survey. Your responses have been recorded.</p>
-        </div>
+    <div class="randomization-container">
+        <h1>Sports Betting Simulation Study</h1>
+        <p>Welcome! Click the button below to begin the survey.</p>
+        <button class="start-btn" onclick="startSurvey()">Start Survey</button>
     </div>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js"></script>
     <script>
-        // Check group assignment on page load
-        (function() {
+        // Check if user already has an assignment
+        document.addEventListener('DOMContentLoaded', function() {
             const assignedGroup = localStorage.getItem('surveyGroup');
-            
-            // If no assignment exists, redirect to randomization page
-            if (!assignedGroup) {
-                window.location.replace('randomization.html');
+            if (assignedGroup) {
+                // User already has an assignment, redirect them to their assigned group
+                if (assignedGroup === 'treatment') {
+                    window.location.replace('index-treatment.html');
+                } else {
+                    window.location.replace('index-control.html');
+                }
+            }
+        });
+
+        function startSurvey() {
+            // Check if user already has an assignment (shouldn't happen, but double-check)
+            const existingGroup = localStorage.getItem('surveyGroup');
+            if (existingGroup) {
+                // Already assigned, redirect to their group
+                if (existingGroup === 'treatment') {
+                    window.location.replace('index-treatment.html');
+                } else {
+                    window.location.replace('index-control.html');
+                }
                 return;
             }
+
+            // Randomly choose between control and treatment (50/50 chance)
+            // Math.random() returns [0, 1), so < 0.5 gives exactly 50% probability
+            const randomValue = Math.random();
+            const isTreatment = randomValue < 0.5; // 50% chance for treatment, 50% for control
             
-            // If assigned to treatment group, redirect to treatment page
-            if (assignedGroup === 'treatment') {
+            // Store the choice in localStorage (persists across sessions)
+            // Also store in sessionStorage for backward compatibility
+            localStorage.setItem('surveyGroup', isTreatment ? 'treatment' : 'control');
+            sessionStorage.setItem('surveyGroup', isTreatment ? 'treatment' : 'control');
+            
+            // Redirect to the appropriate page
+            // Using replace() so it doesn't add to browser history
+            // The URL will change, but the user won't know which group until after clicking
+            if (isTreatment) {
                 window.location.replace('index-treatment.html');
-                return;
+            } else {
+                window.location.replace('index-control.html');
             }
-            
-            // User is correctly assigned to control group, continue loading
-        })();
+        }
     </script>
-    <script src="script.js"></script>
 </body>
 </html>
-

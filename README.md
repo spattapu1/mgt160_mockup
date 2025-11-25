@@ -19,11 +19,12 @@ This is a survey application for a sports betting simulation study with control 
 6. Click "Create Static Site"
 7. Your site will be deployed automatically and you'll get a URL like `https://mgt160-mockup.onrender.com`
 
-**Note**: For routing to work properly (accessing both `index.html` and `index-treatment.html`), you may need to configure custom routes in Render or use query parameters.
+**Note**: The site uses `index.html` as the entry point which handles randomization and routing.
 
 ## Project Structure
 
-- `index.html` - Control group survey
+- `index.html` - Randomization page (entry point, assigns users to control or treatment)
+- `index-control.html` - Control group survey
 - `index-treatment.html` - Treatment group survey
 - `script.js` - Control group logic
 - `script-treatment.js` - Treatment group logic

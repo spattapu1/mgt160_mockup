@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey - Treatment</title>
+    <title>Survey</title>
     <link rel="icon" href="data:,">
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -24,7 +24,6 @@
                     <li style="margin-top: 10px;"><strong>Out of the top 10 earners one randomly selected participant, will win $50 real dollars.</strong></li>
                 </ul>
                 <p style="margin-top: 20px;">Click "Next" when you are ready to begin.</p>
-
             </div>
             <button class="next-btn" onclick="nextPage()">Next</button>
         </div>
@@ -115,16 +114,16 @@
                 return;
             }
             
-            // If assigned to control group, redirect to control page
-            if (assignedGroup === 'control') {
-                window.location.replace('index-control.html');
+            // If assigned to treatment group, redirect to treatment page
+            if (assignedGroup === 'treatment') {
+                window.location.replace('index-treatment.html');
                 return;
             }
             
-            // User is correctly assigned to treatment group, continue loading
+            // User is correctly assigned to control group, continue loading
         })();
     </script>
-    <script src="script-treatment.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
 
