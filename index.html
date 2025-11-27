@@ -85,10 +85,15 @@
                 return;
             }
 
-            // Randomly choose between control and treatment (50/50 chance)
-            // Math.random() returns [0, 1), so < 0.5 gives exactly 50% probability
+            // Randomly choose between control and treatment (90% treatment, 10% control)
+            // Math.random() returns [0, 1), so:
+            // - randomValue < 0.1 → control (10% of the range)
+            // - randomValue >= 0.1 → treatment (90% of the range)
             const randomValue = Math.random();
-            const isTreatment = randomValue < 0.5; // 50% chance for treatment, 50% for control
+            const isTreatment = randomValue >= 0.1; // Exactly 90% chance for treatment, 10% for control
+            
+            // Debug logging (can be removed in production)
+            console.log('Randomization:', { randomValue, isTreatment, assignedGroup: isTreatment ? 'treatment' : 'control' });
             
             // Store the choice in localStorage (persists across sessions)
             // Also store in sessionStorage for backward compatibility
