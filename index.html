@@ -85,10 +85,10 @@
                 return;
             }
 
-            // Randomly choose between control and treatment (90% treatment, 10% control)
-            // Math.random() returns [0, 1), so < 0.1 gives 10% probability for control
+            // Randomly choose between control and treatment (50/50 chance)
+            // Math.random() returns [0, 1), so < 0.5 gives exactly 50% probability
             const randomValue = Math.random();
-            const isTreatment = randomValue >= 0.1; // 90% chance for treatment, 10% for control
+            const isTreatment = randomValue < 0.5; // 50% chance for treatment, 50% for control
             
             // Store the choice in localStorage (persists across sessions)
             // Also store in sessionStorage for backward compatibility
